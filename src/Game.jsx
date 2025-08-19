@@ -1,49 +1,49 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import "./Game.css";
 
+
 /** ======= Maze Setup ======= */
 /** 0 = frei, 1 = Wand */
 const MAZE = [
-  [1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-  [1,0,0,0,0,0,1,0,0,0,0,0,0,1],
-  [1,0,1,1,1,0,1,0,1,1,1,1,0,1],
-  [1,0,1,0,0,0,0,0,0,0,0,1,0,1],
-  [1,0,1,0,1,1,1,1,1,1,0,1,0,1],
-  [1,0,0,0,0,0,0,0,0,1,0,0,0,1],
-  [1,1,1,1,1,1,0,1,0,1,1,1,0,1],
-  [1,0,0,0,0,0,0,1,0,0,0,1,0,1],
-  [1,0,1,1,1,1,0,1,1,1,0,1,0,1],
-  [1,0,0,0,0,0,0,0,0,0,0,1,0,1],
-  [1,0,1,1,1,1,1,1,1,1,0,1,0,1],
-  [1,0,0,0,0,0,0,0,0,1,0,0,0,1],
-  [1,0,1,1,1,1,1,1,0,1,1,1,0,1],
-  [1,0,0,0,0,0,0,0,0,0,0,0,0,1],
-  [1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+   [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+   [1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1],
+   [1,0,1,1,0,1,1,1,0,1,0,1,1,1,0,1,1,0,1],
+   [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+   [1,0,1,1,0,1,0,1,1,1,1,1,0,1,0,1,1,0,1],
+   [1,0,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,0,1],
+   [1,1,1,1,0,1,1,1,0,1,0,1,1,1,0,1,1,1,1],
+   [1,1,1,1,0,1,0,0,0,0,0,0,0,0,0,1,1,1,1],
+   [1,1,1,1,0,1,0,1,1,1,1,1,1,1,0,1,1,1,1],
+   [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+   [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
 ];
 
-const CELL = 32; // px
-const DIRS = {
+const CELL = 40; // Zellenbreite px
+
+const DIRS = { //Bediehnung mit Pfeilen
   ArrowUp:    { x: 0,  y: -1 },
   ArrowDown:  { x: 0,  y: 1  },
   ArrowLeft:  { x: -1, y: 0  },
   ArrowRight: { x: 1,  y: 0  },
 };
-const KEYS = Object.keys(DIRS);
 
-/** Startpositionen (x,y) im Raster */
 const START_PLAYER = { x: 1, y: 1 };
-const START_GHOST  = { x: 12, y: 13 };
-
-function inside(x, y) {
-  return y >= 0 && y < MAZE.length && x >= 0 && x < MAZE[0].length;
-}
-function isWall(x, y) {
-  return !inside(x, y) || MAZE[y][x] === 1;
-}
-function eq(a, b) { return a.x === b.x && a.y === b.y; }
+const START_GHOST  = { x: 9, y: 7 };
 
 function add(pos, dir) {
   return { x: pos.x + dir.x, y: pos.y + dir.y };
+}
+
+function inside(x, y) {
+   return y >= 0 && y < MAZE.length && x >= 0 && x < MAZE[0].length;
+}
+
+function isWall(x, y) {
+   return !inside(x, y) || MAZE[y][x] === 1;
+}
+
+function eq(a, b) { 
+   return a.x === b.x && a.y === b.y; 
 }
 
 function opposite(dir) {
@@ -64,78 +64,45 @@ function nextGhost(pos, lastDir) {
   return { pos: add(pos, choice), dir: choice };
 }
 
-/** WebAudio: kurzer Beep (kein Asset nötig) */
-function useBeep() {
-  const ctxRef = useRef(null);
-  useEffect(() => {
-    // wird erst bei erster Interaktion erstellt (Autoplay-Policy)
-    const handler = () => {
-      if (!ctxRef.current) ctxRef.current = new (window.AudioContext || window.webkitAudioContext)();
-      window.removeEventListener("pointerdown", handler);
-      window.removeEventListener("keydown", handler);
-    };
-    window.addEventListener("pointerdown", handler);
-    window.addEventListener("keydown", handler);
-    return () => {
-      window.removeEventListener("pointerdown", handler);
-      window.removeEventListener("keydown", handler);
-    };
-  }, []);
+const KEYS = Object.keys(DIRS);
 
-  const beep = (freq = 520, dur = 0.06, type = "square") => {
-    const ctx = ctxRef.current;
-    if (!ctx) return;
-    const o = ctx.createOscillator();
-    const g = ctx.createGain();
-    o.type = type;
-    o.frequency.value = freq;
-    g.gain.value = 0.05;
-    o.connect(g); g.connect(ctx.destination);
-    o.start();
-    setTimeout(() => { o.stop(); o.disconnect(); g.disconnect(); }, dur * 1000);
-  };
-
-  return beep;
-}
-
-export default function Game() {
-  const cols = MAZE[0].length;
-  const rows = MAZE.length;
-  const boardPx = useMemo(() => ({ w: cols * CELL, h: rows * CELL }), [cols, rows]);
-
-  const [player, setPlayer]   = useState(START_PLAYER);
-  const [ghost, setGhost]     = useState(START_GHOST);
-  const [ghostDir, setGhostDir] = useState({ x: 0, y: 0 });
-  const [status, setStatus]   = useState("playing"); // "playing" | "gameover"
-  const [moves, setMoves]     = useState(0);
-  const containerRef = useRef(null);
-  const beep = useBeep();
-
-  // Fokus, damit Arrow Keys nicht scrollen
-  useEffect(() => {
+export default function Game(){
+    const cols = MAZE[0].length;
+    const rows = MAZE.length;
+    const boardPx = useMemo(() => ({ w: cols * CELL, h: rows * CELL }), [cols, rows]);
+    
+    const containerRef = useRef(null);
+    const [player, setPlayer]   = useState(START_PLAYER);
+    const [ghost, setGhost]     = useState(START_GHOST);
+    const [ghostDir, setGhostDir] = useState({ x: 0, y: 0 });
+    const [status, setStatus]   = useState("playing"); // "playing" | "gameover"
+    
+    // Fokus, damit Arrow Keys nicht scrollen
+    useEffect(() => {
     containerRef.current?.focus();
-  }, []);
+     }, []);
+    
+    useEffect(() => {
+        function onKeyDown(e) {
+        
+          if (!KEYS.includes(e.key)) return;
+          if (status !== "playing") return;
+          e.preventDefault();               // 1) Standard-Aktion stoppen (z. B. Scrollen)
+          const dir = DIRS[e.key];          // 2) Richtung ∆x/∆y nachschlagen
+          const next = add(player, dir);
+          if(!isWall(next.x, next.y)){
+            setPlayer(next);      // 3) Zustand auf Basis des *aktuellen* p aktualisieren
+          }
+          
+    
+  }
 
-  // Player Input
-  useEffect(() => {
-    function onKeyDown(e) {
-      if (status !== "playing") return;
-      if (!KEYS.includes(e.key)) return;
-      e.preventDefault();
+  window.addEventListener("keydown", onKeyDown, { passive: false }); // 4) Listener registrieren
+  return () => window.removeEventListener("keydown", onKeyDown);     // 5) sauber abräumen
+}, [player, status]); // 6) nur einmal beim Mount
 
-      const dir = DIRS[e.key];
-      const next = add(player, dir);
-      if (!isWall(next.x, next.y)) {
-        setPlayer(next);
-        setMoves(m => m + 1);
-        beep(650, 0.045, "square");
-      }
-    }
-    window.addEventListener("keydown", onKeyDown, { passive: false });
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [player, status, beep]);
 
-  // Geist-Ticker
+// Geist-Ticker
   useEffect(() => {
     if (status !== "playing") return;
     const id = setInterval(() => {
@@ -144,37 +111,32 @@ export default function Game() {
         setGhostDir(step.dir);
         return step.pos;
       });
-    }, 220); // alle 220ms ein Feld
-    return () => clearInterval(id);
+    }, 110); // alle 110ms ein Feld
+     return () => clearInterval(id);
     // ghostDir absichtlich nicht als dep -> wird im Callback aktualisiert
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status]);
+  
+// Kollision prüfen
 
-  // Kollision prüfen
   useEffect(() => {
-    if (status === "playing" && eq(player, ghost)) {
-      setStatus("gameover");
-      beep(180, 0.18, "sawtooth");
-      beep(140, 0.18, "sawtooth");
-    }
-  }, [player, ghost, status, beep]);
-
+     if(status === "playing" && eq(player, ghost) === true){
+        setStatus("gameover")
+     } 
+  }, [player, status, ghost]);
+  
   function reset() {
     setPlayer(START_PLAYER);
     setGhost(START_GHOST);
     setGhostDir({ x: 0, y: 0 });
-    setMoves(0);
     setStatus("playing");
   }
-
-  // Pixel-Position aus Raster
-  const toTransform = (pos) => `translate(${pos.x * CELL}px, ${pos.y * CELL}px)`;
-
-  return (
+    const toTransform = (pos) => `translate(${pos.x * CELL}px, ${pos.y * CELL}px)`;
+    return (
     <div
       className="game"
       role="application"
-      aria-label="Pac-Man Light"
+      aria-label="Mini Game"
       tabIndex={0}
       ref={containerRef}
       style={{ outline: "none" }}
@@ -183,7 +145,6 @@ export default function Game() {
         className="board"
         style={{ width: boardPx.w, height: boardPx.h, borderRadius: 12 }}
       >
-        {/* Bodenraster */}
         <div
           className="grid"
           style={{
@@ -199,8 +160,8 @@ export default function Game() {
               />
             ))
           )}
-        </div>
-
+        </div> {/* grid */}
+        
         {/* Figuren-Ebene */}
         <div className="pieces">
           <div
@@ -214,13 +175,10 @@ export default function Game() {
             aria-label="Ghost"
           />
         </div>
-      </div>
-
-      <div className="hud">
-        <div className="status">{status === "playing" ? "Spielt…" : "Game Over"}</div>
-        <div>Züge: {moves}</div>
+        
+      </div> {/* board */}
+      <div className="hud"> 
         <button className="button" onClick={reset}>Neu starten</button>
-        <div>Steuerung: Pfeiltasten</div>
       </div>
     </div>
   );
