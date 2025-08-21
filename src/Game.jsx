@@ -92,6 +92,7 @@ export default function Game(){
     const [seconds, setSeconds] = useState(0);
     const [running, setRunning] = useState(false);
     const [coin, setCoin] = useState(possibleCoinPositions());
+    const [count, setCount] = useState(0);
     
     // Fokus, damit Arrow Keys nicht scrollen
     useEffect(() => {
@@ -141,6 +142,15 @@ export default function Game(){
      } 
   }, [player, status, ghost]);
 
+  // coin sammeln
+
+  useEffect(() => {
+     if(status === "playing" && eq(player, coin) === true){
+        setCoin(possibleCoinPositions());
+        setCount(prev => prev + 1)
+     } 
+  }, [player, status, coin]);
+
    useEffect(() => {
       if (status !== "playing") return;
       setSeconds(0); // Timer bei Spielstart auf 0 setzen
@@ -156,6 +166,7 @@ export default function Game(){
     setGhostDir({ x: 0, y: 0 });
     setStatus("playing");
     setCoin(possibleCoinPositions());
+    setCount(0);
 
   }
   function endGame() {
@@ -174,7 +185,10 @@ export default function Game(){
       ref={containerRef}
       style={{ outline: "none" }}
     >
-      <div className="timer">Timer: {seconds}s</div>
+      <div className="timerAndcounter">
+         <span className="timer">Timer: {seconds}s</span>
+         <span className="score">Score: {count}</span>
+      </div>
       <div
         className="board"
         style={{ width: boardPx.w, height: boardPx.h, borderRadius: 12 }}

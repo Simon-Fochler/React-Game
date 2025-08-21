@@ -91,10 +91,14 @@ html, body, #root {
   font-size: 20px;
 }
 
-.timer {
+.timerAndcounter {
   color: #29405e;
   font-size: large;
   font-weight: bold;
+  display: flex;
+}
+.score {
+  margin-left: 20px; /* Abstand nach links */
 }
 
 .button:hover { filter: brightness(1.1); }
