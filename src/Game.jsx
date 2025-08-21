@@ -27,7 +27,7 @@ const DIRS = { //Bediehnung mit Pfeilen
   ArrowRight: { x: 1,  y: 0  },
 };
 
-const START_PLAYER = { x: 1, y: 1 };
+const START_PLAYER = { x: 9, y: 3 };
 const START_GHOST  = { x: 9, y: 7 };
 
 function add(pos, dir) {
@@ -75,7 +75,9 @@ export default function Game(){
     const [player, setPlayer]   = useState(START_PLAYER);
     const [ghost, setGhost]     = useState(START_GHOST);
     const [ghostDir, setGhostDir] = useState({ x: 0, y: 0 });
-    const [status, setStatus]   = useState("playing"); // "playing" | "gameover"
+    const [status, setStatus]   = useState("gameover"); // "playing" | "gameover"
+    const [seconds, setSeconds] = useState(0);
+    const [running, setRunning] = useState(false);
     
     // Fokus, damit Arrow Keys nicht scrollen
     useEffect(() => {
@@ -124,12 +126,28 @@ export default function Game(){
         setStatus("gameover")
      } 
   }, [player, status, ghost]);
+
+   useEffect(() => {
+      if (status !== "playing") return;
+      setSeconds(0); // Timer bei Spielstart auf 0 setzen
+      const interval = setInterval(() => {
+        setSeconds(prev => prev + 1);
+      }, 1000);
+      return () => clearInterval(interval);
+    }, [status]);
   
   function reset() {
     setPlayer(START_PLAYER);
     setGhost(START_GHOST);
     setGhostDir({ x: 0, y: 0 });
     setStatus("playing");
+
+  }
+  function endGame() {
+    setPlayer(START_PLAYER);
+    setGhost(START_GHOST);
+    setGhostDir({ x: 0, y: 0 });
+    setStatus("gameover");
   }
     const toTransform = (pos) => `translate(${pos.x * CELL}px, ${pos.y * CELL}px)`;
     return (
@@ -141,6 +159,7 @@ export default function Game(){
       ref={containerRef}
       style={{ outline: "none" }}
     >
+      <div>Timer: {seconds}s</div>
       <div
         className="board"
         style={{ width: boardPx.w, height: boardPx.h, borderRadius: 12 }}
@@ -178,7 +197,8 @@ export default function Game(){
         
       </div> {/* board */}
       <div className="hud"> 
-        <button className="button" onClick={reset}>Neu starten</button>
+        <button className="button" onClick={reset}>Start</button>
+        <button className="button" onClick={endGame}>End</button>
       </div>
     </div>
   );
