@@ -72,13 +72,21 @@ html, body, #root {
 }
 
 .button {
-  padding: 14px 20px;
+  width: 150px;
+  height: 50px;
   background: #132133;
   border: 1px solid #29405e;
   border-radius: 8px;
   cursor: pointer;
-  color: white;
+  color: #29405e;
   font-weight: bold;
   font-size: 20px;
 }
+
+.timer {
+  color: #29405e;
+  font-size: large;
+  font-weight: bold;
+}
+
 .button:hover { filter: brightness(1.1); }

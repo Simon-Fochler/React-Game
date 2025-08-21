@@ -159,7 +159,7 @@ export default function Game(){
       ref={containerRef}
       style={{ outline: "none" }}
     >
-      <div>Timer: {seconds}s</div>
+      <div className="timer">Timer: {seconds}s</div>
       <div
         className="board"
         style={{ width: boardPx.w, height: boardPx.h, borderRadius: 12 }}
