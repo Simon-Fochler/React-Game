@@ -28,7 +28,7 @@ const DIRS = { //Bediehnung mit Pfeilen
 };
 
 const START_PLAYER = { x: 9, y: 3 };
-const START_GHOST  = { x: 9, y: 7 };
+const START_GHOST = { x: 9, y: 7 };
 
 function add(pos, dir) {
   return { x: pos.x + dir.x, y: pos.y + dir.y };
@@ -91,7 +91,7 @@ export default function Game(){
     const [status, setStatus]   = useState("gameover"); // "playing" | "gameover"
     const [seconds, setSeconds] = useState(0);
     const [running, setRunning] = useState(false);
-    const [coin, setCoin] = useState(possibleCoinPositions());
+    const [coins, setCoins] = useState([possibleCoinPositions(), possibleCoinPositions(), possibleCoinPositions(), possibleCoinPositions(), possibleCoinPositions()]);
     const [count, setCount] = useState(0);
     
     // Fokus, damit Arrow Keys nicht scrollen
@@ -144,12 +144,20 @@ export default function Game(){
 
   // coin sammeln
 
-  useEffect(() => {
-     if(status === "playing" && eq(player, coin) === true){
-        setCoin(possibleCoinPositions());
-        setCount(prev => prev + 1)
-     } 
-  }, [player, status, coin]);
+ useEffect(() => {
+  if (status === "playing") {
+    setCoins(prevCoins =>
+      prevCoins.map(c =>
+        eq(player, c) ? possibleCoinPositions() : c
+      )
+    );
+    // Punkte erhöhen nur für die tatsächlich getroffenen Coins
+    const hits = coins.filter(c => eq(player, c)).length;
+    if (hits > 0) {
+      setCount(prev => prev + hits);
+    }
+  }
+}, [player, status, coins]);
 
    useEffect(() => {
       if (status !== "playing") return;
@@ -165,7 +173,7 @@ export default function Game(){
     setGhost(START_GHOST);
     setGhostDir({ x: 0, y: 0 });
     setStatus("playing");
-    setCoin(possibleCoinPositions());
+    setCoins([possibleCoinPositions(), possibleCoinPositions(), possibleCoinPositions(), possibleCoinPositions(), possibleCoinPositions()]);
     setCount(0);
 
   }
@@ -222,11 +230,16 @@ export default function Game(){
             style={{ transform: toTransform(ghost) }}
             aria-label="Ghost"
           />
+         
+         {coins.map((c, i) => (
           <div
+            key={i}
             className="piece coin"
-            style={{ transform: toTransform(coin) }}
+            style={{ transform: toTransform(c) }}
             aria-label="Coin"
-         />
+          />
+))}
+  
         </div>
         
       </div> {/* board */}
