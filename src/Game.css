@@ -61,6 +61,14 @@ html, body, #root {
 .ghost {
   background: #ff5a72;       /* rot/pink */
 }
+
+.coin {
+  background: gold;
+  height: 10px;
+  width: 10px;
+  margin: 15px;
+}
+
 .hud {
   margin-top: 14px;
   display: flex;

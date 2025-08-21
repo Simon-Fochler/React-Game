@@ -50,6 +50,19 @@ function opposite(dir) {
   return { x: -dir.x, y: -dir.y };
 }
 
+function possibleCoinPositions() {
+  let positions = [];
+  for (let row = 0; row < MAZE.length; row++) {
+    for (let col = 0; col < MAZE[row].length; col++) {
+      if (MAZE[row][col] === 0 && !(col === START_PLAYER.x && row === START_PLAYER.y)) {
+        positions.push({ x: col, y: row });
+      }
+    }
+  }
+  return positions[Math.floor(Math.random() * positions.length)];
+}
+
+
 /** Einfaches “KI”-Schrittchen: wähle zufällige valide Richtung, meide Turnbacks wenn möglich */
 function nextGhost(pos, lastDir) {
   const candidates = [DIRS.ArrowUp, DIRS.ArrowDown, DIRS.ArrowLeft, DIRS.ArrowRight]
@@ -78,6 +91,7 @@ export default function Game(){
     const [status, setStatus]   = useState("gameover"); // "playing" | "gameover"
     const [seconds, setSeconds] = useState(0);
     const [running, setRunning] = useState(false);
+    const [coin, setCoin] = useState(possibleCoinPositions());
     
     // Fokus, damit Arrow Keys nicht scrollen
     useEffect(() => {
@@ -141,6 +155,7 @@ export default function Game(){
     setGhost(START_GHOST);
     setGhostDir({ x: 0, y: 0 });
     setStatus("playing");
+    setCoin(possibleCoinPositions());
 
   }
   function endGame() {
@@ -193,6 +208,11 @@ export default function Game(){
             style={{ transform: toTransform(ghost) }}
             aria-label="Ghost"
           />
+          <div
+            className="piece coin"
+            style={{ transform: toTransform(coin) }}
+            aria-label="Coin"
+         />
         </div>
         
       </div> {/* board */}
