@@ -50,6 +50,10 @@ function opposite(dir) {
   return { x: -dir.x, y: -dir.y };
 }
 
+function makeCoin() {
+  return { id: Math.random().toString(36).slice(2), pos: possibleCoinPositions() };
+}
+
 function possibleCoinPositions() {
   let positions = [];
   for (let row = 0; row < MAZE.length; row++) {
@@ -91,7 +95,7 @@ export default function Game(){
     const [status, setStatus]   = useState("gameover"); // "playing" | "gameover"
     const [seconds, setSeconds] = useState(0);
     const [running, setRunning] = useState(false);
-    const [coins, setCoins] = useState([possibleCoinPositions(), possibleCoinPositions(), possibleCoinPositions(), possibleCoinPositions(), possibleCoinPositions()]);
+    const [coins, setCoins] = useState([makeCoin(), makeCoin(), makeCoin(), makeCoin(), makeCoin()]);
     const [count, setCount] = useState(0);
     
     // Fokus, damit Arrow Keys nicht scrollen
@@ -144,20 +148,21 @@ export default function Game(){
 
   // coin sammeln
 
- useEffect(() => {
-  if (status === "playing") {
+  useEffect(() => {
+  if (status !== "playing") return;
+
+  const hit = coins.find(c => eq(player, c.pos));
+  if (hit) {
     setCoins(prevCoins =>
       prevCoins.map(c =>
-        eq(player, c) ? possibleCoinPositions() : c
+        c.id === hit.id ? makeCoin() : c
       )
     );
-    // Punkte erhöhen nur für die tatsächlich getroffenen Coins
-    const hits = coins.filter(c => eq(player, c)).length;
-    if (hits > 0) {
-      setCount(prev => prev + hits);
-    }
+    setCount(prev => prev + 1); // nur 1x erhöhen
   }
 }, [player, status, coins]);
+
+
 
    useEffect(() => {
       if (status !== "playing") return;
@@ -173,7 +178,7 @@ export default function Game(){
     setGhost(START_GHOST);
     setGhostDir({ x: 0, y: 0 });
     setStatus("playing");
-    setCoins([possibleCoinPositions(), possibleCoinPositions(), possibleCoinPositions(), possibleCoinPositions(), possibleCoinPositions()]);
+    setCoins([makeCoin(), makeCoin(), makeCoin(), makeCoin(), makeCoin()]);
     setCount(0);
 
   }
@@ -231,14 +236,14 @@ export default function Game(){
             aria-label="Ghost"
           />
          
-         {coins.map((c, i) => (
+         {coins.map(c => (
           <div
-            key={i}
+            key={c.id}
             className="piece coin"
-            style={{ transform: toTransform(c) }}
+            style={{ transform: toTransform(c.pos) }}
             aria-label="Coin"
-          />
-))}
+           />
+         ))}
   
         </div>
         
