@@ -92,11 +92,15 @@ export default function Game(){
     const [player, setPlayer]   = useState(START_PLAYER);
     const [ghost, setGhost]     = useState(START_GHOST);
     const [ghostDir, setGhostDir] = useState({ x: 0, y: 0 });
-    const [status, setStatus]   = useState("gameover"); // "playing" | "gameover"
+    const [status, setStatus]   = useState("before game"); // "playing" | "gameover" | "before game"
     const [seconds, setSeconds] = useState(0);
     const [running, setRunning] = useState(false);
     const [coins, setCoins] = useState([makeCoin(), makeCoin(), makeCoin(), makeCoin(), makeCoin()]);
     const [count, setCount] = useState(0);
+    const [infoOpen, setInfoOpen] = useState(true); //
+    
+   
+    
     
     // Fokus, damit Arrow Keys nicht scrollen
     useEffect(() => {
@@ -183,6 +187,7 @@ export default function Game(){
 
   }
   function endGame() {
+    if (status!=="playing") return;
     setPlayer(START_PLAYER);
     setGhost(START_GHOST);
     setGhostDir({ x: 0, y: 0 });
@@ -198,9 +203,14 @@ export default function Game(){
       ref={containerRef}
       style={{ outline: "none" }}
     >
+    
+
+
+
       <div className="timerAndcounter">
          <span className="timer">Timer: {seconds}s</span>
          <span className="score">Score: {count}</span>
+         <button className="infoBtn" onClick={() => setInfoOpen(true)}><i class="fa fa-icon w3-large">&#9432;</i></button>
       </div>
       <div
         className="board"
@@ -247,7 +257,52 @@ export default function Game(){
   
         </div>
         
-      </div> {/* board */}
+      </div>
+
+      {/* InfoWindow */}
+      {infoOpen && (
+        <div className="backdrop" onClick={() => setInfoOpen(false)}>
+          <div
+            className="modal"
+            onClick={(e) => e.stopPropagation()} // Klick im Fenster nicht schließen
+          >
+            <div className="closeRow"><button className="closeButton" onClick={() => setInfoOpen(false)}>&#128473;</button></div>
+            <h2 className="gameDescriptionH">Game Instructions</h2>
+            <p className="gameDescription">Move the player using the arrow keys, collect coins, and avoid the ghost.</p>
+            <button  className="button" onClick={() => {
+    reset();           // Spiel zurücksetzen
+    setInfoOpen(false); // Info-Fenster schließen
+  }}>Start Game</button>
+          </div>
+        </div>
+      )}
+      
+
+    {/* Gameover Page */}
+      {status == "gameover" && (
+        <div className="backdrop">
+          <div
+            className="modal"
+            onClick={(e) => e.stopPropagation()} // Klick im Fenster nicht schließen
+          >
+            <div className="closeRow"><button className="closeButton" onClick={() => setStatus("before playing")}>&#128473;</button></div>
+            <h2 className="gameDescriptionH">GAMEOVER</h2>
+            <div className="final-timerandscore">
+               <span className="final-timer">Timer: {seconds}s</span>
+               <br />
+               <span className="final-score">Score: {count}</span>
+            </div>
+            <button  className="button" onClick={() => {
+    reset();           // Spiel zurücksetzen
+    setInfoOpen(false); // Info-Fenster schließen
+  }}>Start Game</button>
+          </div>
+        </div>
+      )}
+
+
+
+      {/* board */}
       <div className="hud"> 
         <button className="button" onClick={reset}>Start</button>
         <button className="button" onClick={endGame}>End</button>

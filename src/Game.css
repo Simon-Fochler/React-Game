@@ -80,7 +80,7 @@ html, body, #root {
 }
 
 .button {
-  width: 150px;
+  width: 180px;
   height: 50px;
   background: #132133;
   border: 1px solid #29405e;
@@ -96,9 +96,91 @@ html, body, #root {
   font-size: large;
   font-weight: bold;
   display: flex;
+  height: 40px;
+}
+.timer{
+  margin-top: 5px;
+  margin-bottom: 5px;
 }
 .score {
   margin-left: 20px; /* Abstand nach links */
+  margin-top: 5px;
+  margin-bottom: 5px;
+}
+.infoBtn{
+  background-color: #091016;
+  color: #29405e;
+  margin-left: 550px; /* Abstand nach links */
+  margin-top: 5px;
+  margin-bottom: 5px;
+  display: flex;
+  align-items: center;    /* vertikal zentrieren */
+  justify-content: center; /* horizontal zentrieren */
+  font-size: larger;
+  font-weight: bolder;
+  width: 10px;  
 }
 
 .button:hover { filter: brightness(1.1); }
+
+
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal {
+  background: #29405e;
+  border: 1px solid #132133;
+  color: #132133;
+  padding: 2rem;
+  border-radius: 8px;
+  width: 45vw;  /* max. 90% der Bildschirmbreite */
+  height: 35vh; /* max. 80% der Bildschirmhöhe */
+  overflow: auto;   /* Scrollen, falls Inhalt größer als max-height */
+  box-sizing: border-box;
+  text-align: center;
+}
+
+
+.closeRow{
+  display: flex;
+  justify-content: flex-end; /* horizontal rechts */
+  align-items: center;       /* vertikal zentriert */
+  height: 20px; 
+}
+.closeButton{
+  padding: 5px 5px;
+  height: 20px; 
+  color: rgb(133, 2, 2);
+  background-color: transparent;
+  display: flex;
+  align-items: center;    /* vertikal zentrieren */
+  justify-content: center; /* horizontal zentrieren */
+}
+
+.gameDescriptionH{
+  font-weight: bolder;
+  font-weight: larger;
+}
+.gameDescription{
+  font-weight: bold;
+  font-size: large;
+  margin-bottom: 50px;
+}
+
+
+
+
+.final-timerandscore{
+  font-weight: bold;
+  font-size: large;
+  margin-bottom: 50px;
+}
+
