@@ -134,7 +134,9 @@ export default function Game(){
     
     const containerRef = useRef(null);
     const [player, setPlayer]   = useState(START_PLAYER);
-    const [ghost, setGhost]     = useState(START_GHOST);
+    const [ghosts, setGhosts] = useState([
+  { id: "g1", pos: START_GHOST, dir: { x: 0, y: 0 } }
+]);
     const [ghostDir, setGhostDir] = useState({ x: 0, y: 0 });
     const [status, setStatus]   = useState("before game"); // "playing" | "gameover" | "before game"
     const [seconds, setSeconds] = useState(0);
@@ -173,26 +175,38 @@ export default function Game(){
 
 // Geist-Ticker
   useEffect(() => {
-    if (status !== "playing") return;
-    const id = setInterval(() => {
-      setGhost(g => {
-        const step = nextGhost(g, ghostDir, player);
-        setGhostDir(step.dir);
-        return step.pos;
-      });
-    }, 180); // alle 110ms ein Feld
-     return () => clearInterval(id);
-    // ghostDir absichtlich nicht als dep -> wird im Callback aktualisiert
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status, player]);
+  if (status !== "playing") return;
+  const id = setInterval(() => {
+    setGhosts(gs =>
+      gs.map(g => {
+        const step = nextGhost(g.pos, g.dir, player);
+        return { ...g, pos: step.pos, dir: step.dir };
+      })
+    );
+  }, 180);
+  return () => clearInterval(id);
+}, [status, player]);
+
+//Geister hinzufügen
+
+useEffect(() => {
+  if (status !== "playing") return;
+  const id = setInterval(() => {
+    setGhosts(gs => [
+      ...gs,
+      { id: "g" + (gs.length + 1), pos: START_GHOST, dir: { x: 0, y: 0 } }
+    ]);
+  }, 30000); // alle 30s
+  return () => clearInterval(id);
+}, [status]);
   
 // Kollision prüfen
-
-  useEffect(() => {
-     if(status === "playing" && eq(player, ghost) === true){
-        setStatus("gameover")
-     } 
-  }, [player, status, ghost]);
+useEffect(() => {
+  if (status !== "playing") return;
+  if (ghosts.some(g => eq(player, g.pos))) {
+    setStatus("gameover");
+  }
+}, [player, ghosts, status]);
 
   // coin sammeln
 
@@ -222,21 +236,22 @@ export default function Game(){
     }, [status]);
   
   function reset() {
-    setPlayer(START_PLAYER);
-    setGhost(START_GHOST);
-    setGhostDir({ x: 0, y: 0 });
-    setStatus("playing");
-    setCoins([makeCoin(), makeCoin(), makeCoin(), makeCoin(), makeCoin()]);
-    setCount(0);
-
-  }
+  setPlayer(START_PLAYER);
+  setGhosts([
+    { id: "g1", pos: START_GHOST, dir: { x: 0, y: 0 } }
+  ]);
+  setStatus("playing");
+  setCoins([makeCoin(), makeCoin(), makeCoin(), makeCoin(), makeCoin()]);
+  setCount(0);
+}
   function endGame() {
-    if (status!=="playing") return;
-    setPlayer(START_PLAYER);
-    setGhost(START_GHOST);
-    setGhostDir({ x: 0, y: 0 });
-    setStatus("gameover");
-  }
+  if (status !== "playing") return;
+  setPlayer(START_PLAYER);
+  setGhosts([
+    { id: "g1", pos: START_GHOST, dir: { x: 0, y: 0 } }
+  ]);
+  setStatus("gameover");
+}
     const toTransform = (pos) => `translate(${pos.x * CELL}px, ${pos.y * CELL}px)`;
     return (
     <div
@@ -284,11 +299,14 @@ export default function Game(){
             style={{ transform: toTransform(player) }}
             aria-label="Player"
           />
-          <div
-            className="piece ghost"
-            style={{ transform: toTransform(ghost) }}
-            aria-label="Ghost"
-          />
+          {ghosts.map(g => (
+  <div
+    key={g.id}
+    className="piece ghost"
+    style={{ transform: toTransform(g.pos) }}
+    aria-label="Ghost"
+  />
+))}
          
          {coins.map(c => (
           <div
