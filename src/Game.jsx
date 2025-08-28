@@ -12,8 +12,8 @@ const MAZE = [
    [1,0,1,1,0,1,0,1,1,1,1,1,0,1,0,1,1,0,1],
    [1,0,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,0,1],
    [1,1,1,1,0,1,1,1,0,1,0,1,1,1,0,1,1,1,1],
-   [1,1,1,1,0,1,0,0,0,0,0,0,0,0,0,1,1,1,1],
-   [1,1,1,1,0,1,0,1,1,1,1,1,1,1,0,1,1,1,1],
+   [1,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,1],
+   [1,0,1,1,0,1,0,1,1,1,1,1,1,1,0,1,1,0,1],
    [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
    [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
 ];
@@ -65,12 +65,56 @@ function possibleCoinPositions() {
   }
   return positions[Math.floor(Math.random() * positions.length)];
 }
+/**Spieler sehen */
+function searchPlayer(posGhost, posPlayer){
+  // oben
+  {
+    let x = posGhost.x, y = posGhost.y;
+    while (!isWall(x, y)) {
+      if (posPlayer.x === x && posPlayer.y === y) return DIRS.ArrowUp;
+      y--;
+    }
+  }
+  // unten
+  {
+    let x = posGhost.x, y = posGhost.y;
+    while (!isWall(x, y)) {
+      if (posPlayer.x === x && posPlayer.y === y) return DIRS.ArrowDown;
+      y++;
+    }
+  }
+  // links
+  {
+    let x = posGhost.x, y = posGhost.y;
+    while (!isWall(x, y)) {
+      if (posPlayer.x === x && posPlayer.y === y) return DIRS.ArrowLeft;
+      x--;
+    }
+  }
+  // rechts
+  {
+    let x = posGhost.x, y = posGhost.y;
+    while (!isWall(x, y)) {
+      if (posPlayer.x === x && posPlayer.y === y) return DIRS.ArrowRight;
+      x++;
+    }
+  }
 
-
+  return null;
+}
 /** Einfaches “KI”-Schrittchen: wähle zufällige valide Richtung, meide Turnbacks wenn möglich */
-function nextGhost(pos, lastDir) {
+function nextGhost(pos, lastDir, pos_player) {
+
+  const playerFound = searchPlayer(pos, pos_player)
+  console.log(playerFound);
+  if(playerFound!== null){
+    return {pos: add(pos, playerFound), dir: playerFound};
+  }
+
+
   const candidates = [DIRS.ArrowUp, DIRS.ArrowDown, DIRS.ArrowLeft, DIRS.ArrowRight]
     .filter(d => !isWall(pos.x + d.x, pos.y + d.y));
+
 
   if (candidates.length === 0) return { pos, dir: lastDir };
 
@@ -132,15 +176,15 @@ export default function Game(){
     if (status !== "playing") return;
     const id = setInterval(() => {
       setGhost(g => {
-        const step = nextGhost(g, ghostDir);
+        const step = nextGhost(g, ghostDir, player);
         setGhostDir(step.dir);
         return step.pos;
       });
-    }, 110); // alle 110ms ein Feld
+    }, 180); // alle 110ms ein Feld
      return () => clearInterval(id);
     // ghostDir absichtlich nicht als dep -> wird im Callback aktualisiert
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status]);
+  }, [status, player]);
   
 // Kollision prüfen
 
