@@ -183,7 +183,7 @@ export default function Game(){
         return { ...g, pos: step.pos, dir: step.dir };
       })
     );
-  }, 180);
+  }, 240); //Geschwindigkeit Geist
   return () => clearInterval(id);
 }, [status, player]);
 
@@ -304,9 +304,9 @@ useEffect(() => {
     key={g.id}
     className="piece ghost"
     style={{ transform: toTransform(g.pos) }}
-    aria-label="Ghost"
   />
 ))}
+        
          
          {coins.map(c => (
           <div

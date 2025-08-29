@@ -58,9 +58,7 @@ html, body, #root {
   background: #ffd54a;       /* gelb */
 }
 
-.ghost {
-  background: #ff5a72;       /* rot/pink */
-}
+
 
 .coin {
   background: gold;
@@ -184,3 +182,17 @@ html, body, #root {
   margin-bottom: 50px;
 }
 
+
+.ghost {
+  width: 32px;
+  height: 32px;
+  background: black;
+  background-image: url("./assets/spritesheet.png");
+  background-repeat: no-repeat;
+  animation: ghost-walk 2.0s steps(4) infinite;
+}
+
+@keyframes ghost-walk {
+  from { background-position: 0 -64px; }
+  to   { background-position: 0 -192px; } /* 3 * 32px = 96px */
+}
